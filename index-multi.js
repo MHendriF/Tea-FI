@@ -171,8 +171,8 @@ async function main() {
         }
       }
 
-      console.log('🕐 Waiting 1 minute before next transaction...');
-      await delay(60000);
+      console.log('🕐 Waiting 5 second before next transaction...');
+      await delay(5000);
     }
   } catch (error) {
     console.error('Error:', error.reason || error.message);
