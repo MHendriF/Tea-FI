@@ -4,6 +4,9 @@ import cfonts from 'cfonts';
 import chalk from 'chalk';
 import fs from 'fs';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 // Helper function for delay
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
