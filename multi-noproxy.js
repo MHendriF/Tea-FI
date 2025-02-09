@@ -2,10 +2,7 @@ import { ethers } from 'ethers';
 import fetch from 'node-fetch';
 import cfonts from 'cfonts';
 import chalk from 'chalk';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
+import fs from 'fs';
 
 // Helper function for delay
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -28,17 +25,25 @@ async function main() {
       )
     );
 
-    const rpcUrl = process.env.RPC_URL;
-    const API_URL = process.env.API_URL;
-    const PRIVATE_KEYS = process.env.PRIVATE_KEYS?.split(',').filter(Boolean);
+    // Read wallets from file
+    const wallets = fs
+      .readFileSync('wallets.txt', 'utf8')
+      .split('\n')
+      .filter(Boolean);
 
-    if (!rpcUrl || !API_URL || !PRIVATE_KEYS || PRIVATE_KEYS.length === 0) {
-      throw new Error(
-        'RPC_URL, API_URL, or PRIVATE_KEYS is missing in the .env file.'
-      );
+    if (wallets.length === 0) {
+      throw new Error('No wallets found in the wallets.txt file.');
     }
 
-    console.log(`Loaded ${PRIVATE_KEYS.length} wallets.`);
+    console.log(`Loaded ${wallets.length} wallets.`);
+
+    // Load environment variables
+    const rpcUrl = process.env.RPC_URL;
+    const API_URL = process.env.API_URL;
+
+    if (!rpcUrl || !API_URL) {
+      throw new Error('RPC_URL or API_URL is missing in the .env file.');
+    }
 
     const wpolAbi = [
       'function approve(address spender, uint256 amount) public returns (bool)',
@@ -55,8 +60,8 @@ async function main() {
       console.log(`\n🔁 Loop ${i} of ${loops}`);
 
       // Rotate wallets
-      const privateKey = PRIVATE_KEYS[walletIndex];
-      walletIndex = (walletIndex + 1) % PRIVATE_KEYS.length;
+      const privateKey = wallets[walletIndex];
+      walletIndex = (walletIndex + 1) % wallets.length;
 
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       const wallet = new ethers.Wallet(privateKey, provider);
