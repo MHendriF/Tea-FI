@@ -46,54 +46,83 @@ async function processWallet(privateKey) {
 
     const wpolContract = new ethers.Contract(wpolAddress, wpolAbi, wallet);
 
-    // Approve and swap tokens
-    console.log(chalk.blue('Approving WPOL for swap...'));
-    const approveTx = await wpolContract.approve(twpolAddress, amountToSwap);
-    console.log(chalk.green(`✅ Approval TX sent! Hash: ${approveTx.hash}`));
-    await approveTx.wait();
+    const loops = 100000; // Number of transactions per wallet
 
-    console.log(chalk.blue('Swapping WPOL to tPOL...'));
-    const swapTx = await wpolContract.transfer(twpolAddress, amountToSwap);
-    console.log(chalk.green(`✅ Swap TX sent! Hash: ${swapTx.hash}`));
-    await swapTx.wait();
+    for (let i = 1; i <= loops; i++) {
+      console.log(
+        chalk.blue(`\n🔁 Loop ${i} of ${loops} for wallet: ${wallet.address}`)
+      );
 
-    // Prepare API payload
-    const payload = {
-      blockchainId: 137,
-      type: 2,
-      walletAddress: wallet.address,
-      hash: swapTx.hash,
-      fromTokenAddress: wpolAddress,
-      toTokenAddress: twpolAddress,
-      fromTokenSymbol: 'WPOL',
-      toTokenSymbol: 'tPOL',
-      fromAmount: amountToSwap.toString(),
-      toAmount: amountToSwap.toString(),
-      gasFeeTokenAddress: '0x0000000000000000000000000000000000000000',
-      gasFeeTokenSymbol: 'POL',
-      gasFeeAmount: '8055000012888000',
-    };
+      try {
+        // Approve transaction
+        console.log(chalk.blue('Approving WPOL for swap...'));
+        const approveTx = await wpolContract.approve(
+          twpolAddress,
+          amountToSwap
+        );
+        console.log(
+          chalk.green(`✅ Approval TX sent! Hash: ${approveTx.hash}`)
+        );
+        await approveTx.wait();
 
-    // Send API request
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json, text/plain, */*',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0',
-        Origin: 'https://app.tea-fi.com',
-        Referer: 'https://app.tea-fi.com/',
-      },
-      body: JSON.stringify(payload),
-    });
+        // Swap tokens
+        console.log(chalk.blue('Swapping WPOL to tPOL...'));
+        const swapTx = await wpolContract.transfer(twpolAddress, amountToSwap);
+        console.log(chalk.green(`✅ Swap TX sent! Hash: ${swapTx.hash}`));
+        await swapTx.wait();
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API Error: ${response.status} - ${errorText}`);
+        // Prepare API payload
+        const payload = {
+          blockchainId: 137,
+          type: 2,
+          walletAddress: wallet.address,
+          hash: swapTx.hash,
+          fromTokenAddress: wpolAddress,
+          toTokenAddress: twpolAddress,
+          fromTokenSymbol: 'WPOL',
+          toTokenSymbol: 'tPOL',
+          fromAmount: amountToSwap.toString(),
+          toAmount: amountToSwap.toString(),
+          gasFeeTokenAddress: '0x0000000000000000000000000000000000000000',
+          gasFeeTokenSymbol: 'POL',
+          gasFeeAmount: '8055000012888000',
+        };
+
+        // Send API request
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json, text/plain, */*',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0',
+            Origin: 'https://app.tea-fi.com',
+            Referer: 'https://app.tea-fi.com/',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API Error: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log(chalk.green('✅ API Response:', result));
+      } catch (error) {
+        console.error(chalk.red(`❌ Error during loop ${i}:`, error.message));
+        if (error.message.includes('Too many requests')) {
+          console.log(
+            chalk.yellow('⏳ Rate limit hit. Retrying in 1 minute...')
+          );
+          await delay(60000); // Wait 1 minute before retrying
+        }
+      }
+
+      console.log(
+        chalk.magenta('🕐 Waiting 5 seconds before next transaction...')
+      );
+      await delay(5000); // Wait 5 seconds between transactions
     }
-
-    const result = await response.json();
-    console.log(chalk.green('✅ API Response:', result));
 
     parentPort.postMessage(
       `Completed processing for wallet: ${wallet.address}`
