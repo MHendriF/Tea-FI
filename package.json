@@ -11,8 +11,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cfonts": "^3.3.0",
+    "chalk": "^5.4.1",
     "dotenv": "^16.4.7",
     "ethers": "^6.13.5",
+    "https-proxy-agent": "^5.0.1",
     "node-fetch": "^3.3.2"
   }
 }
