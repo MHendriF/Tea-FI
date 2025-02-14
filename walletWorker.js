@@ -49,8 +49,19 @@ async function processWallet(privateKey) {
     const loops = 100000; // Number of transactions per wallet
 
     for (let i = 1; i <= loops; i++) {
+      const currentTime = new Date().toLocaleString('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
       console.log(
-        chalk.blue(`\n🔁 Loop ${i} of ${loops} for wallet: ${wallet.address}`)
+        chalk.blue(
+          `\n🔁 [${currentTime}] Loop ${i} of ${loops} for wallet: ${wallet.address}`
+        )
       );
 
       try {
