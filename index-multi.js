@@ -62,7 +62,7 @@ async function main() {
     const wpolAddress = '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270';
     const twpolAddress = '0x1Cd0cd01c8C902AdAb3430ae04b9ea32CB309CF1';
     const amountToSwap = ethers.parseEther('0.00015');
-    const loops = 100000;
+    const loops = 5;
 
     let walletIndex = 0;
     let proxyIndex = 0;

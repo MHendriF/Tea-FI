@@ -4,9 +4,16 @@ import fetch from 'node-fetch';
 import cfonts from 'cfonts';
 import chalk from 'chalk';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
-dotenv.config();
+// Mendapatkan __filename dan __dirname di modul ES
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Helper function for delay
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -117,8 +124,9 @@ if (isMainThread) {
       );
 
       // Read wallets from file
+      const walletsFilePath = path.join(__dirname, 'wallets.txt');
       const wallets = fs
-        .readFileSync('wallets.txt', 'utf8')
+        .readFileSync(walletsFilePath, 'utf8')
         .split('\n')
         .filter(Boolean);
 
